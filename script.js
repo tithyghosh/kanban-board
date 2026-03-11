@@ -1,71 +1,115 @@
-const columns = {
-  todo: document.querySelector("#to-do"),
-  progress: document.querySelector("#in-progress"),
-  done: document.querySelector("#done"),
-};
+const toDO = document.querySelector("#to-do");
+const progress = document.querySelector("#in-progress");
+const done = document.querySelector("#done");
+
+const columns = [toDO, progress, done];
 
 const modal = document.querySelector(".modal");
 const modalBg = document.querySelector(".bg");
 
-const titleInput = document.querySelector("#task-title");
-const descInput = document.querySelector("#task-desc");
+const toggleModalBtn = document.querySelector("#toggle-modal");
+const addTaskBtn = document.querySelector("#add-task");
+
+const taskTitleInput = document.querySelector("#task-title");
+const taskDescInput = document.querySelector("#task-area");
 
 let draggedItem = null;
 
-// ---------- STORAGE ----------
-function saveTasks() {
-  const data = {
-    todo: [],
-    progress: [],
-    done: [],
-  };
+// ---------------- COUNT ----------------
 
-  Object.keys(columns).forEach((key) => {
-    const tasks = columns[key].querySelectorAll(".task");
+function updateCount() {
+  columns.forEach((col) => {
+    const count = col.querySelector(".right");
+    const tasks = col.querySelectorAll(".task");
 
-    tasks.forEach((task) => {
-      data[key].push({
-        title: task.querySelector("h2").innerText,
-        desc: task.querySelector("p").innerText,
-      });
-    });
+    count.innerText = tasks.length;
   });
-
-  localStorage.setItem("kanbanTasks", JSON.stringify(data));
 }
 
-function loadTasks() {
-  const data = JSON.parse(localStorage.getItem("kanbanTasks"));
-  if (!data) return;
+// ---------------- DRAG ----------------
 
-  Object.keys(data).forEach((col) => {
-    data[col].forEach((task) => {
-      const newTask = createTask(task.title, task.desc);
-      columns[col].appendChild(newTask);
-    });
+function enableDrag(task) {
+  task.addEventListener("dragstart", () => {
+    draggedItem = task;
   });
-
-  updateCount();
 }
 
-// ---------- TASK ----------
+// ---------------- DROP LOGIC ----------------
+
+columns.forEach((column) => {
+  column.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    column.classList.add("hover-over");
+
+    const afterElement = getDragAfterElement(column, e.clientY);
+
+    if (afterElement == null) {
+      column.appendChild(draggedItem);
+    } else {
+      column.insertBefore(draggedItem, afterElement);
+    }
+  });
+
+  column.addEventListener("dragleave", () => {
+    column.classList.remove("hover-over");
+  });
+
+  column.addEventListener("drop", (e) => {
+    e.preventDefault();
+    column.classList.remove("hover-over");
+
+    updateCount();
+    saveTasks();
+  });
+});
+
+// ---------- SORT POSITION ----------
+
+function getDragAfterElement(container, y) {
+  const elements = [...container.querySelectorAll(".task")];
+
+  return elements.reduce(
+    (closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+
+      if (offset < 0 && offset > closest.offset) {
+        return { offset: offset, element: child };
+      } else {
+        return closest;
+      }
+    },
+    { offset: Number.NEGATIVE_INFINITY },
+  ).element;
+}
+
+// ---------------- MODAL ----------------
+
+toggleModalBtn.addEventListener("click", () => {
+  modal.classList.toggle("active");
+});
+
+modalBg.addEventListener("click", () => {
+  modal.classList.remove("active");
+});
+
+// ---------------- CREATE TASK ----------------
+
 function createTask(title, desc) {
   const div = document.createElement("div");
 
-  div.className = "task";
+  div.classList.add("task");
   div.draggable = true;
 
   div.innerHTML = `
-        <h2>${title}</h2>
-        <p>${desc}</p>
-        <button>Delete</button>
-    `;
+<h2>${title}</h2>
+<p>${desc}</p>
+<button class="delete-btn">Delete</button>
+`;
 
-  div.addEventListener("dragstart", () => {
-    draggedItem = div;
-  });
+  enableDrag(div);
 
-  div.querySelector("button").addEventListener("click", () => {
+  div.querySelector(".delete-btn").addEventListener("click", () => {
     div.remove();
     updateCount();
     saveTasks();
@@ -74,65 +118,73 @@ function createTask(title, desc) {
   return div;
 }
 
-// ---------- COUNT ----------
-function updateCount() {
-  Object.values(columns).forEach((col) => {
-    const count = col.querySelector(".right");
-    count.innerText = col.querySelectorAll(".task").length;
-  });
-}
+// ---------------- ADD TASK ----------------
 
-// ---------- DRAG ----------
-Object.values(columns).forEach((col) => {
-  col.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    col.classList.add("hover-over");
-  });
-
-  col.addEventListener("dragleave", () => {
-    col.classList.remove("hover-over");
-  });
-
-  col.addEventListener("drop", (e) => {
-    e.preventDefault();
-
-    col.appendChild(draggedItem);
-
-    col.classList.remove("hover-over");
-
-    updateCount();
-    saveTasks();
-  });
-});
-
-// ---------- MODAL ----------
-document.querySelector("#toggle-modal").onclick = () => {
-  modal.classList.toggle("active");
-};
-
-modalBg.onclick = () => {
-  modal.classList.remove("active");
-};
-
-// ---------- ADD TASK ----------
-document.querySelector("#add-task").onclick = () => {
-  const title = titleInput.value.trim();
-  const desc = descInput.value.trim();
+addTaskBtn.addEventListener("click", () => {
+  const title = taskTitleInput.value.trim();
+  const desc = taskDescInput.value.trim();
 
   if (!title) return;
 
   const task = createTask(title, desc);
 
-  columns.todo.appendChild(task);
+  toDO.appendChild(task);
 
-  titleInput.value = "";
-  descInput.value = "";
+  taskTitleInput.value = "";
+  taskDescInput.value = "";
 
   modal.classList.remove("active");
 
   updateCount();
   saveTasks();
-};
+});
 
-// load tasks
+// ---------------- STORAGE ----------------
+
+function saveTasks() {
+  const data = {
+    todo: [],
+    progress: [],
+    done: [],
+  };
+
+  columns.forEach((col, i) => {
+    const tasks = col.querySelectorAll(".task");
+
+    tasks.forEach((task) => {
+      const obj = {
+        title: task.querySelector("h2").innerText,
+        desc: task.querySelector("p").innerText,
+      };
+
+      if (i === 0) data.todo.push(obj);
+      if (i === 1) data.progress.push(obj);
+      if (i === 2) data.done.push(obj);
+    });
+  });
+
+  localStorage.setItem("kanbanTasks", JSON.stringify(data));
+}
+
+function loadTasks() {
+  const data = JSON.parse(localStorage.getItem("kanbanTasks"));
+
+  if (!data) return;
+
+  data.todo.forEach((t) => {
+    toDO.appendChild(createTask(t.title, t.desc));
+  });
+
+  data.progress.forEach((t) => {
+    progress.appendChild(createTask(t.title, t.desc));
+  });
+
+  data.done.forEach((t) => {
+    done.appendChild(createTask(t.title, t.desc));
+  });
+
+  updateCount();
+}
+
+// initial load
 loadTasks();
