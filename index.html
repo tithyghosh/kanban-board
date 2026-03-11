@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full w-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="./output.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hover-over{
+            border: 2px solid #d3cbcba4;
+            scale: 1.02;
+        }
+        .modal{
+            position: fixed;
+            height: 100vh;
+            width: 100vw;
+            top: 0;
+            left: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active{
+            display: flex;
+        }
+        section .task-col .task{
+            background: #2a2a2a;
+            margin: 0 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            cursor: grab;
+        }
+        section .task-col .task button{
+            padding: 4px 8px;
+            align-self: flex-end;
+            background-color: red;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+        </style>
+</head>
+<body class="h-full w-full bg-[#0c0c0c] text-white font-system-ui">
+    <main class="h-full flex flex-col">
+        <nav class="py-4 px-8 flex items-center justify-between">
+            <div class="left">
+                Kanban Board
+            </div>
+            <div class="right ">
+                <button class="bg-[#1a1a1a] px-4 py-2 rounded border-none outline-none" id="toggle-modal">Add New Task</button>
+            </div>
+        </nav>
+        <section class="board py-3.75 px-7.5 flex justify-between gap-7.5  grow">
+            <div id="to-do" class="task-col bg-[#1a1a1a] flex  flex-col grow gap-3.75 transition-all duration-700 ease-[cubic-bezier(0.19, 1, 0.22, 1)]">
+                <div class="heading w-full flex  justify-between px-4 py-2 border-b border-[#333]">
+                    <div class="left">To do</div>
+                    <div class="right">Count</div>
+                </div>
+            </div>
+            <div id="in-progress" class="task-col bg-[#1a1a1a] flex flex-col grow  transition-all duration-700 ease-[cubic-bezier(0.19, 1, 0.22, 1)] gap-3.75">
+                <div class="heading w-full flex  justify-between px-4 py-2 border-b border-[#333]">
+                    <div class="left">In progress</div>
+                    <div class="right">Count</div>
+                </div>
+            </div>
+            <div id="done" class="task-col bg-[#1a1a1a] flex flex-col grow  transition-all duration-700 ease-[cubic-bezier(0.19, 1, 0.22, 1)] gap-3.75">
+                <div class="heading w-full flex  justify-between px-4 py-2 border-b border-[#333]">
+                    <div class="left">Done</div>
+                    <div class="right">Count</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    <div class="modal add-new-text">
+        <div class="bg absolute h-full w-full bg-[rgba(61, 61, 61, 0.404)] backdrop-blur-sm"></div>
+        <div class="center bg-[#03010165] py-10 px-12 rounded-xl flex flex-col gap-4 z-10">
+             <input type="text" placeholder="Task Title" class="bg-[#0c0c0d] rounded-lg p-2" id="task-title">
+             <textarea placeholder="Task Description" class="bg-[#0c0c0d] rounded-lg p-2" id="task-area"></textarea>
+             <button id="add-task" class="add-task-btn text-white bg-cyan-950 px-3 py-2 rounded-lg w-fit self-center">Add Task</button>
+        </div>
+       
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
+t
